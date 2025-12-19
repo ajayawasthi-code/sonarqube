@@ -1,0 +1,45 @@
+trigger: none 
+pool: pipeline
+stages:
+  - stage: todoinstallation
+    displayName: Todo-installation
+    jobs:
+      - job: npminstallation
+        displayName: npm-installation
+        steps:
+        - task: NodeTool@0
+          inputs:
+            versionSource: 'spec'
+            versionSpec: '16.x'
+        - task: PowerShell@2
+          displayName: Npm Install
+          inputs:
+            targetType: 'inline'
+            script: 'npm install'
+        - task: PowerShell@2
+          displayName: Npm Run Build
+          inputs:
+            targetType: 'inline'
+            script: 'npm run build'
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.SourcesDirectory)/build'
+            ArtifactName: 'drop'
+            publishLocation: 'Container'
+            
+        - task: CopyFilesOverSSH@0
+          inputs:
+            sshEndpoint: 'pipelinessh'
+            sourceFolder: '$(Build.SourcesDirectory)/build'
+            contents: '**'
+            targetFolder: '/home/ajay/build'
+            readyTimeout: '30000'
+        - task: SSH@0
+          inputs:
+            sshEndpoint: 'pipelinessh'
+            runOptions: 'inline'
+            inline: |
+              sudo rm -rf  /var/www/html/*
+              sudo cp -r /home/ajay/build/* /var/www/html/
+            readyTimeout: '30000'

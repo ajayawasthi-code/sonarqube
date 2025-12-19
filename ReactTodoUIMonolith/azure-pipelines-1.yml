@@ -1,0 +1,24 @@
+trigger: none
+
+pool:
+  name: FRONTEND
+  demands:
+    - java
+
+steps:
+- task: SonarQubePrepare@8
+  inputs:
+    SonarQube: 'sonarqube'
+    scannerMode: 'cli'
+    configMode: 'manual'
+    cliProjectKey: 'sonarqube'
+    cliProjectName: 'sonarqube'
+    cliSources: '.'
+
+- task: SonarQubeAnalyze@8
+  inputs:
+    jdkversion: 'JAVA_HOME_17_X64'
+
+- task: SonarQubePublish@8
+  inputs:
+    pollingTimeoutSec: '300'
